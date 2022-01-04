@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "./cubiomes/generator.h"
-#include "./cubiomes/finders.h"
+#include "cubiomes/finders.h"
 
 int main()
 {
