@@ -6,18 +6,12 @@
 #include <math.h>
 
 
-STRUCT(quad_threadinfo_t) {
-	int64_t start, end;
-	StructureConfig sconf;
-	int threadID;
-	int quality;
-	const char* fnam;
-};
 
 
 //==============================================================================
 // Globals
 //==============================================================================
+
 
 Biome biomes[256];
 
@@ -90,7 +84,6 @@ int64_t* loadSavedSeeds(const char* fnam, int64_t* scnt) {
 }
 
 
-
 //==============================================================================
 // Checking Biomes & Biome Helper Functions
 //==============================================================================
@@ -141,44 +134,24 @@ Pos findBiomePosition(
 	out.z = centerZ;
 	found = 0;
 
-	if (mcversion >= MC_1_13)
-	{
-		for (i = 0, j = 2; i < width * height; i++)
-		{
-			if (!isValid[map[i] & 0xff]) continue;
-			if ((found == 0 || nextInt(seed, j++) == 0))
-			{
-				out.x = (x1 + i % width) << 2;
-				out.z = (z1 + i / width) << 2;
-				found = 1;
-			}
-		}
-		found = j - 2;
-	}
-	else
-	{
-		for (i = 0; i < width * height; i++)
-		{
-			if (isValid[map[i] & 0xff] &&
-				(found == 0 || nextInt(seed, found + 1) == 0))
-			{
-				out.x = (x1 + i % width) << 2;
-				out.z = (z1 + i / width) << 2;
-				++found;
-			}
-		}
-	}
 
+	for (i = 0, j = 2; i < width * height; i++)
+	{
+		if (!isValid[map[i] & 0xff]) continue;
+		if ((found == 0 || nextInt(seed, j++) == 0))
+		{
+			out.x = (x1 + i % width) << 2;
+			out.z = (z1 + i / width) << 2;
+			found = 1;
+		}
+	}
+	found = j - 2;
 
 	if (cache == NULL)
-	{
 		free(map);
-	}
 
 	if (passes != NULL)
-	{
 		*passes = found;
-	}
 
 	return out;
 }
@@ -264,129 +237,6 @@ int getBiomeRadius(
 	return r != radiusMax ? r : -1;
 }
 
-
-static double getGrassProbability(int64_t seed, int biome, int x, int z) {
-	// TODO: Use ChunkGeneratorOverworld.generateHeightmap for better estimate.
-	// TODO: Try to determine the actual probabilities and build a statistic.
-	switch (biome)
-	{
-	case plains:            return 1.0;
-	case extremeHills:      return 0.8; // height dependent
-	case forest:            return 1.0;
-	case taiga:             return 1.0;
-	case swampland:         return 0.6; // height dependent
-	case river:             return 0.2;
-	case beach:             return 0.1;
-	case forestHills:       return 1.0;
-	case taigaHills:        return 1.0;
-	case extremeHillsEdge:  return 1.0; // height dependent
-	case jungle:            return 1.0;
-	case jungleHills:       return 1.0;
-	case jungleEdge:        return 1.0;
-	case birchForest:       return 1.0;
-	case birchForestHills:  return 1.0;
-	case roofedForest:      return 0.9;
-	case coldTaiga:         return 0.1; // below trees
-	case coldTaigaHills:    return 0.1; // below trees
-	case megaTaiga:         return 0.6;
-	case megaTaigaHills:    return 0.6;
-	case extremeHillsPlus:  return 0.2; // height dependent
-	case savanna:           return 1.0;
-	case savannaPlateau:    return 1.0;
-	case mesaPlateau_F:     return 0.1; // height dependent
-	case mesaPlateau:       return 0.1; // height dependent
-	// NOTE: in rare circumstances you can get also get grass islands that are
-	// completely ocean variants...
-	default: return 0;
-	}
-}
-
-static int canCoordinateBeSpawn(const int64_t seed, LayerStack* g, int* cache, Pos pos) {
-	int biome = getBiomeAtPos(*g, pos);
-	return getGrassProbability(seed, biome, pos.x, pos.z) >= 0.5;
-}
-
-static int* getValidSpawnBiomes() {
-	static int isSpawnBiome[256];
-	unsigned int i;
-
-	if (!isSpawnBiome[biomesToSpawnIn[0]])
-	{
-		for (i = 0; i < sizeof(biomesToSpawnIn) / sizeof(int); i++)
-		{
-			isSpawnBiome[biomesToSpawnIn[i]] = 1;
-		}
-	}
-
-	return isSpawnBiome;
-}
-
-
-Pos getSpawn(const int mcversion, LayerStack* g, int* cache, int64_t worldSeed) {
-	const int* isSpawnBiome = getValidSpawnBiomes();
-	Pos spawn;
-	int found;
-	int i;
-
-	setSeed(&worldSeed);
-	spawn = findBiomePosition(mcversion, *g, cache, 0, 0, 256, isSpawnBiome,
-		&worldSeed, &found);
-
-	if (!found)
-	{
-		//printf("Unable to find spawn biome.\n");
-		spawn.x = spawn.z = 8;
-	}
-
-	if (mcversion >= MC_1_13)
-	{
-		// TODO: The 1.13 section may need further checking!
-		int n2 = 0;
-		int n3 = 0;
-		int n4 = 0;
-		int n5 = -1;
-
-		for (i = 0; i < 1024; i++)
-		{
-			if (n2 > -16 && n2 <= 16 && n3 > -16 && n3 <= 16)
-			{
-				int cx = ((spawn.x >> 4) + n2) << 4;
-				int cz = ((spawn.z >> 4) + n3) << 4;
-
-				for (int i2 = cx; i2 <= cx + 15; i2++)
-				{
-					for (int i3 = cz; i3 <= cz + 15; i3++)
-					{
-						Pos pos = { i2, i3 };
-						if (canCoordinateBeSpawn(worldSeed, g, cache, pos))
-						{
-							return pos;
-						}
-					}
-				}
-			}
-
-			if (n2 == n3 || (n2 < 0 && n2 == -n3) || (n2 > 0 && n2 == 1 - n3))
-			{
-				int n7 = n4;
-				n4 = -n5;
-				n5 = n7;
-			}
-			n2 += n4;
-			n3 += n5;
-		}
-	}
-	else
-	{
-		for (i = 0; i < 1000 && !canCoordinateBeSpawn(worldSeed, g, cache, spawn); i++)
-		{
-			spawn.x += nextInt(&worldSeed, 64) - nextInt(&worldSeed, 64);
-			spawn.z += nextInt(&worldSeed, 64) - nextInt(&worldSeed, 64);
-		}
-	}
-
-	return spawn;
-}
 
 
 const int majorBiomes[] = {
@@ -485,6 +335,7 @@ int64_t filterAllMajorBiomes(
 	if (cache == NULL) free(map);
 	return hits;
 }
+
 
 
 BiomeFilter setupBiomeFilter(const int* biomeList, int listLen) {
@@ -911,7 +762,6 @@ return_one:
 
 	return ret;
 }
-
 
 
 

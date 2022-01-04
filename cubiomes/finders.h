@@ -13,6 +13,7 @@ typedef HANDLE thread_id_t;
 
 #else
 
+
 typedef thread_id_t;
 
 #endif
@@ -23,7 +24,6 @@ typedef thread_id_t;
 
 #define LARGE_STRUCT 1
 #define USE_POW2_RNG 2
-
 
 //==============================================================================
 // Biome Tables
@@ -44,10 +44,31 @@ STRUCT(Pos) {
 };
 
 STRUCT(BiomeFilter) {
+	// bitfield for required temperature categories, including special variants
+	uint64_t tempCat;
+	// bitfield for the required ocean types
+	uint64_t oceansToFind;
 	// bitfield of required biomes without modification bit
 	uint64_t biomesToFind;
 	// bitfield of required modified biomes
 	uint64_t modifiedToFind;
+
+	// check that there is a minimum of both special and normal temperatures
+	int tempNormal, tempSpecial;
+	// check for the temperatures specified by tempCnt (1:1024)
+	int doTempCheck;
+	// check for mushroom potential
+	int requireMushroom;
+	// combine a more detailed mushroom and temperature check (1:256)
+	int doShroomAndTempCheck;
+	// early check for 1.13 ocean types (1:256)
+	int doOceanTypeCheck;
+	//
+	int doMajorBiomeCheck;
+	// pre-generation biome checks in layer L_BIOME_256
+	int checkBiomePotential;
+	//
+	int doScale4Check;
 };
 
 
@@ -212,172 +233,10 @@ int getBiomeRadius(
 	const int       ignoreMutations);
 
 
-
-//==============================================================================
-// Finding Strongholds and Spawn
-//==============================================================================
-
-/* Finds the block positions of the strongholds in the world. Note that the
- * number of strongholds was increased from 3 to 128 in MC 1.9.
- * Warning: Slow!
- *
- * @mcversion : Minecraft version (changed in 1.7, 1.9, 1.13)
- * @g         : generator layer stack [worldSeed should be applied before call!]
- * @cache     : biome buffer, set to NULL for temporary allocation
- * @locations : output block positions
- * @worldSeed : world seed of the generator
- * @maxSH     : Stop when this many strongholds have been found. A value of 0
- *              defaults to 3 for mcversion <= MC_1_8, and to 128 for >= MC_1_9.
- * @maxRadius : Stop searching if the radius exceeds this value in meters.
- *              Set this to 0 to ignore this condition.
- *
- * Returned is the number of strongholds found.
- */
-int findStrongholds(
-	const int           mcversion,
-	LayerStack* g,
-	int* cache,
-	Pos* locations,
-	int64_t             worldSeed,
-	int                 maxSH,
-	const int           maxRadius
-);
-
-/* Finds the spawn point in the world.
- * Warning: Slow, and may be inaccurate because the world spawn depends on
- * grass blocks!
- *
- * @mcversion : Minecraft version (changed in 1.7, 1.13)
- * @g         : generator layer stack [worldSeed should be applied before call!]
- * @cache     : biome buffer, set to NULL for temporary allocation
- * @worldSeed : world seed used for the generator
- */
-Pos getSpawn(const int mcversion, LayerStack* g, int* cache, int64_t worldSeed);
-
-/* Finds the approximate spawn point in the world.
- *
- * @mcversion : Minecraft version (changed in 1.7, 1.13)
- * @g         : generator layer stack [worldSeed should be applied before call!]
- * @cache     : biome buffer, set to NULL for temporary allocation
- * @worldSeed : world seed used for the generator
- */
-Pos estimateSpawn(const int mcversion, LayerStack* g, int* cache, int64_t worldSeed);
-
-
-//==============================================================================
-// Validating Structure Positions
-//==============================================================================
-
-/************************ Biome Checks for Structures **************************
- *
- * Scattered features only do a simple check of the biome at the block position
- * of the structure origin (i.e. the north-west corner). Before 1.13 the type of
- * structure was determined by the biome, while in 1.13 the scattered feature
- * positions are calculated separately for each type. However, the biome
- * requirements remain the same:
- *
- *  Desert Pyramid: desert or desertHills
- *  Igloo         : icePlains or coldTaiga
- *  Jungle Pyramid: jungle or jungleHills
- *  Swamp Hut     : swampland
- *
- * Similarly, Ocean Ruins and Shipwrecks require any oceanic biome at their
- * block position.
- *
- * Villages, Monuments and Mansions on the other hand require a certain area to
- * be of a valid biome and the check is performed at a 1:4 scale instead of 1:1.
- * (Actually the area for villages has a radius zero, which means it is a simple
- * biome check at a 1:4 scale.)
- */
-
-
- /* These functions perform a biome check at the specified block coordinates to
-  * determine whether the corresponding structure would spawn there. You can get
-  * the block positions using the appropriate getXXXPos() function.
-  *
-  * @g              : generator layer stack [set seed using applySeed()]
-  * @cache          : biome buffer, set to NULL for temporary allocation
-  * @blockX, blockZ : block coordinates
-  *
-  * In the case of isViableFeaturePos() the 'type' argument specifies the type of
-  * scattered feature (as an enum) for which the check is performed.
-  *
-  * The return value is non-zero if the position is valid.
-  */
-int isViableFeaturePos(const int type, const LayerStack g, int* cache, const int blockX, const int blockZ);
-int isViableVillagePos(const LayerStack g, int* cache, const int blockX, const int blockZ);
-int isViableOceanMonumentPos(const LayerStack g, int* cache, const int blockX, const int blockZ);
-int isViableMansionPos(const LayerStack g, int* cache, const int blockX, const int blockZ);
-
-
-
-//==============================================================================
-// Finding Properties of Structures
-//==============================================================================
-
-/* Initialises and returns a random seed used in the (16x16) chunk generation.
- * This random object is used for recursiveGenerate() which is responsible for
- * generating caves, ravines, mineshafts, and virtually all other structures.
- */
-inline static int64_t chunkGenerateRnd(const int64_t worldSeed, const int chunkX, const int chunkZ) {
-	int64_t rnd = worldSeed;
-	setSeed(&rnd);
-	rnd = (nextLong(&rnd) * chunkX) ^ (nextLong(&rnd) * chunkZ) ^ worldSeed;
-	setSeed(&rnd);
-	return rnd;
-}
-
-/* Checks if the village in the given region would be infested by zombies.
- * (Minecraft 1.10+)
- */
-int isZombieVillage(const int mcversion, const int64_t worldSeed,
-	const int regionX, const int regionZ);
-
-/* Checks if the village in the given region would generate as a baby zombie
- * village. (The fact that these exist could be regarded as a bug.)
- * (Minecraft 1.12)
- */
-int isBabyZombieVillage(const int mcversion, const int64_t worldSeed,
-	const int regionX, const int regionZ);
-
-/* Finds the number of each type of house that generate in a village.
- * @worldSeed      : world seed
- * @chunkX, chunkZ : 16x16 chunk position of the village origin
- * @housesOut      : output number of houses for each entry in the house type
- *                   enum (i.e this should be an array of length HOUSE_NUM)
- *
- * Returns the random object seed after finding these numbers.
- */
-int64_t getHouseList(const int64_t worldSeed, const int chunkX, const int chunkZ,
-	int* housesOut);
-
-
 //==============================================================================
 // Seed Filters
 //==============================================================================
 
-/* Looks through the seeds in 'seedsIn' and copies those for which all
- * temperature categories are present in the 3x3 area centred on the specified
- * coordinates into 'seedsOut'. The map scale at this layer is 1:1024.
- *
- * @g            : generator layer stack, (NOTE: seed will be modified)
- * @cache        : biome buffer, set to NULL for temporary allocation
- * @seedsIn      : list of seeds to check
- * @seedsOut     : output buffer for the candidate seeds
- * @seedCnt      : number of seeds in 'seedsIn'
- * @centX, centZ : search origin centre (in 1024 block units)
- *
- * Returns the number of found candidates.
- */
-int64_t filterAllTempCats(
-	LayerStack* g,
-	int* cache,
-	const int64_t* seedsIn,
-	int64_t* seedsOut,
-	const int64_t       seedCnt,
-	const int           centX,
-	const int           centZ
-);
 
 /* Looks through the list of seeds in 'seedsIn' and copies those that have all
  * major overworld biomes in the specified area into 'seedsOut'. These checks
