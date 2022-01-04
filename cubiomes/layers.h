@@ -103,7 +103,7 @@ static inline int biomeExists(int id) {
 }
 
 static inline int getTempCategory(int id) {
-	return biomes[id & 0xff].tempCat;
+	return biomes[id].tempCat;
 }
 
 
@@ -158,7 +158,7 @@ static inline int isBiomeSnowy(int id) {
 }
 
 static inline int mcNextInt(Layer* layer, int mod) {
-	int ret = (int)((layer->chunkSeed >> 24) % (int64_t)mod);
+	int ret = (layer->chunkSeed >> 24) % mod;
 
 	if (ret < 0)
 	{
