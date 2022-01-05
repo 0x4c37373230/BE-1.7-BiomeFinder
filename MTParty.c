@@ -1,3 +1,5 @@
+#ifndef MTPARTY_C
+#define MTPARTY_C
 /*
  * copyright @hhhxiao
  *
@@ -47,3 +49,4 @@ uint32_t *partyMT(uint32_t seed, int n)
 float int_2_float(uint32_t x) {
     return (float)(x) * 2.328306436538696e-10f;
 }
+#endif
