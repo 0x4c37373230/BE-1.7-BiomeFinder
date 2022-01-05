@@ -9,12 +9,13 @@
 
 int main() {
 	initBiomes();
+
 	LayerStack layers = setupGeneratorMCBE17();
 	int64_t seed = 1918114094;
-	Pos pos = { 1200, -6576 };
+	Pos pos = { 1200 , -6576 };
 	applySeed(&layers, seed);
-	int biomeId = getBiomeAtPos(layers, pos);
-	printf("%d", biomeId);
+	printf("%d", getBiomeAtPos(layers, pos));
+
 	return 0;
 }
 /// const StructureConfig OCEAN_MONUMENT = {32, 27, OCEAN}; //海底神殿
