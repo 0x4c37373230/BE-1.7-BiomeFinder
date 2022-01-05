@@ -2,18 +2,25 @@
 #include "./cubiomes/generator.h"
 #include "./cubiomes/finders.h"
 
-
 /*
-*	Add whatever code here
-*/
+ *	Add whatever code here
+ */
 
 int main() {
 	initBiomes();
+
 	LayerStack layers = setupGeneratorMCBE17();
-	int64_t seed = 1918114094;
-	Pos pos = { 1200 , -6576 };
+
+    printf("Input a world seed:\n");
+	int64_t seed;
+    scanf_s("%lld", &seed);
+
+    printf("Input X and Z block coordinates:\n");
+	Pos pos = { 0 , 0 };
+    scanf_s("%d %d", &pos.x, &pos.z);
+
 	applySeed(&layers, seed);
-	int biomeId = getBiomeAtPos(layers, pos);
-	printf("%d", biomeId);
+	printf("%d", getBiomeAtPos(layers, pos));
+
 	return 0;
 }
