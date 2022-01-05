@@ -7,8 +7,6 @@ static void oceanRndInit(OceanRnd* rnd, int64_t seed);
 
 void initAddBiome(int id, int tempCat, int biometype, float temp,
 	float height) {
-	if (id & (~0xff))
-		return;
 	biomes[id].id = id;
 	biomes[id].type = biometype;
 	biomes[id].temp = temp;
