@@ -673,10 +673,8 @@ void mapBiome(Layer* l, int* __restrict out, int areaX, int areaZ,
 		}
 	}
 }
-/** I have no idea why but when i removed the redundent "plains" it just broke
- * lmfao**/
-const int lushBiomesBE[] = { forest, roofedForest, extremeHills, plains,
-							plains, plains,       birchForest,  swampland };
+/** I have no idea why but when i removed the redundent "plains" it just broke lmfao**/
+const int lushBiomesBE[] = { forest, roofedForest, extremeHills, plains, birchForest,  swampland };
 
 void mapBiomeBE(Layer* l, int* __restrict out, int areaX, int areaZ,
 	int areaWidth, int areaHeight) {
