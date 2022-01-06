@@ -1,53 +1,51 @@
 #include <stdint.h>
-#include "./cubiomes/generator.h"
-#include "./cubiomes/finders.h"
+#include "cubiomes/generator.h"
+#include "cubiomes/finders.h"
 #include "partyMT.h"
 
-static uint32_t getSeed(int worldSeed, int salt, int x, int z)
+int isMonumentChunk(LayerStack layers, uint32_t worldSeed, Pos pos)
 {
-    return salt + worldSeed - 245998635 * z - 1724254968 * x;
-}
-
-int isFeatureChunk(LayerStack layers, uint32_t worldSeed, Pos pos)
-{
-    if (pos.x < 0)
-        pos.x -= 32 - 1;
-    if (pos.z < 0)
-        pos.z -= 32 - 1;
-
+    Pos ogPos = pos;
+    pos.x -= (pos.x < 0) ? 31 : 0;
+    pos.z -= (pos.z < 0) ? 31 : 0;
     uint32_t* mt = partyMT((10387313 + worldSeed - 245998635 * pos.z / 32 - 1724254968 * pos.x / 32), 4);
-    uint32_t r1 = mt[0] % 27;
-    uint32_t r2 = mt[1] % 27;
-    uint32_t r3 = mt[2] % 27;
-    uint32_t r4 = mt[3] % 27;
-    int x_offset = pos.x % 32;
-    int z_offset = pos.z % 32;
+    int xOffset = pos.x % 32;
+    int zOffset = pos.z % 32;
+    xOffset += (xOffset < 0) ? 31 : 0;
+    zOffset += (zOffset < 0) ? 31 : 0;
+    int flag = (mt[0] % 27 + mt[1] % 27) / 2 == xOffset && (mt[2] % 27 + mt[3] % 27) / 2 == zOffset;
+    static const int oceanMonumentBiomeList1[] = { 0, 7, 10, 11, 24, 40, 41, 42, 43, 44, 45, 46 };
+    int biomeId =getBiomeAtPos(layers, ogPos);
 
-    if (x_offset < 0)
-        x_offset += 32 - 1;
-    if (z_offset < 0)
-        z_offset += 32 - 1;
-
-    if (!(r1 + r2) / 2 == x_offset && (r3 + r4) / 2 == z_offset)
-        return 0;
-
-    static const int oceanMonumentBiomeList1[] =
+    for (int i = 0; i < 12; ++i)
     {
-            ocean,         deepOcean,         river,     frozenRiver,
-            frozenOcean,   frozenDeepOcean,   coldOcean, coldDeepOcean,
-            lukewarmOcean, lukewarmDeepOcean, warmOcean, warmDeepOcean
-    };
-
-    static const int oceanMonumentBiomeList2[] =
-    {
-            frozenDeepOcean,    coldDeepOcean,  deepOcean, lukewarmDeepOcean, warmDeepOcean
-    };
-
-    for (int i = 0; i > sizeof(oceanMonumentBiomeList1); i++) {
-        if (getBiomeAtPos(layers, pos) == oceanMonumentBiomeList1[i])
+        if ((biomeId == oceanMonumentBiomeList1[i]) && flag)
             return 1;
     }
+
     return 0;
 }
+/*
 
+// I had an idea while messing with stuff which I can't be asked to explain, and I thought this would work.
+// It's unreliable sadly. I'll keep messing with this later (luke)
 
+int isMonumentChunk2(LayerStack layers, uint32_t worldSeed, Pos pos)
+{
+    Pos ogPos = pos;
+    static const int monumentBiomes[] = { 0, 7, 10, 11, 24, 40, 41, 42, 43, 44, 45, 46 };
+    int biomeID = getBiomeAtPos(layers, ogPos);
+    pos.x -= (pos.x < 0) ? 31 : 0;
+    pos.z -= (pos.z < 0) ? 31 : 0;
+    uint32_t* mt = partyMT((10387313 + worldSeed - 245998635L * (pos.z / 32) - 1724254968L * (pos.x / 32)), 4);
+    int flag = ((mt[0] % 27 + mt[1] % 27) / 2) % 2 == 0 && ((mt[2] % 27 + mt[3] % 27) / 2) % 2 == 0;
+
+    for (int i = 0; i < 12; ++i)
+    {
+        if (biomeID == monumentBiomes[i] && flag)
+            return 1;
+    }
+
+    return 0;
+}
+*/

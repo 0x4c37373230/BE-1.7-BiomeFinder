@@ -51,5 +51,6 @@ uint32_t* partyMT(uint32_t seed, int n)
 
     free(head_arr);
     free(last_arr);
+
     return result;
 }

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "./cubiomes/generator.h"
 #include "./cubiomes/finders.h"
+#include "oceanMonument.h"
 
 /*
  *	Add whatever code here
@@ -21,7 +22,8 @@ int main()
     scanf_s("%d %d", &pos.x, &pos.z);
 
 	applySeed(&layers, seed);
-	printf("%d", getBiomeAtPos(layers, pos));
+	printf("Biome ID: %d\n", getBiomeAtPos(layers, pos));
+    printf("Monument?: %d", isMonumentChunk(layers, seed, pos));
 
 	return 0;
 }
