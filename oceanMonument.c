@@ -4,7 +4,8 @@
 #include "cubiomes/finders.h"
 #include "partyMT.h"
 
-bool isMonumentChunk(LayerStack layers, uint32_t worldSeed, Pos pos)
+static const int oceanMonumentBiomeList1[] = { 0, 7, 10, 11, 24, 40, 41, 42, 43, 44, 45, 46 };
+bool isMonumentChunk(LayerStack &layers, uint32_t worldSeed, Pos &pos)
 {
     int biomeID = getBiomeAtPos(layers, pos);
     pos.x -= (pos.x < 0) ? 31 : 0;
@@ -15,7 +16,6 @@ bool isMonumentChunk(LayerStack layers, uint32_t worldSeed, Pos pos)
     xOffset += (xOffset < 0) ? 31 : 0;
     zOffset += (zOffset < 0) ? 31 : 0;
     bool flag = (mt[0] % 27 + mt[1] % 27) / 2 != xOffset && (mt[2] % 27 + mt[3] % 27) / 2 != zOffset;
-    static const int oceanMonumentBiomeList1[] = { 0, 7, 10, 11, 24, 40, 41, 42, 43, 44, 45, 46 };
     if(!flag) { return 0; }
     for (int i = 0; i < 12; ++i)
     {
