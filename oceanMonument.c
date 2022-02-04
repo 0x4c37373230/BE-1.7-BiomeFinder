@@ -6,9 +6,9 @@
 
 static const int oceanMonumentBiomeList1[] = { 0, 7, 10, 11, 24, 40, 41, 42, 43, 44, 45, 46 };
 
-bool isMonumentChunk(LayerStack layers, uint32_t worldSeed, Pos pos)
+bool isMonumentChunk(LayerStack* layers, uint32_t worldSeed, Pos pos)
 {
-    int biomeID = getBiomeAtPos(layers, pos);
+    int biomeID = getBiomeAtPos(*layers, pos);
     pos.x -= (pos.x < 0) ? 31 : 0;
     pos.z -= (pos.z < 0) ? 31 : 0;
     uint32_t* mt = partyMT((10387313 + worldSeed - 245998635 * pos.z / 32 - 1724254968 * pos.x / 32), 4);
