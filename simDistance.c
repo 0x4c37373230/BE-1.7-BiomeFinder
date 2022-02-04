@@ -10,8 +10,10 @@ bool sim6(LayerStack* layers, uint32_t seed, Pos originPos, bool (*feature)(Laye
 
         for (int j = -w; j <= w; ++j)
         {
-            if (feature(layers, seed, (Pos) { originPos.x + i, originPos.z + j }))
+            if (feature(layers, seed, (Pos){ (originPos.x + i) * 16, (originPos.z + j) * 16 }))
+            {
                 result = true;
+            }
         }
     }
 
