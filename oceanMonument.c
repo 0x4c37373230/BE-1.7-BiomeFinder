@@ -24,8 +24,12 @@ bool isMonumentChunk(LayerStack* layers, uint32_t worldSeed, Pos pos)
     for (int i = 0; i < 12; ++i)
     {
         if (biomeID == oceanMonumentBiomeList1[i])
+        {
+            free(mt);
             return 1;
+        }
     }
 
+    free(mt);
     return 0;
 }

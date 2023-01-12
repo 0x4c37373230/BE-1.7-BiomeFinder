@@ -3,11 +3,7 @@
 #include "./cubiomes/finders.h"
 #include "oceanMonument.h"
 #include "miscFeatures.h"
-#include "clusterFinders.h"
-
-/*
- *	Add whatever code here
- */
+// #include "clusterFinders.h"
 
 int main()
 {
@@ -28,7 +24,7 @@ int main()
 	printf("Biome ID: %d\n", getBiomeAtPos(layers, pos));
     printf("Slime Chunk? %d\n", isSlimeChunk(pos));
     printf("Monument?: %d\n", isMonumentChunk(&layers, seed, pos));
-
+/*
     printf("Input the start block X and Z chunk coordinates:\n");
     Pos startPos = { 0 , 0 };
     scanf_s("%d %d", &startPos.x, &startPos.z);
@@ -38,6 +34,6 @@ int main()
     scanf_s("%d %d", &endPos.x, &endPos.z);
 
     monumentCluster(&layers, seed, startPos, endPos);
-
+*/
 	return 0;
 }

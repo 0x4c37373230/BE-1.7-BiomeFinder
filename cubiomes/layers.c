@@ -938,21 +938,6 @@ void mapHills(Layer* l, int* __restrict out, int areaX, int areaZ,
 	free(buf);
 }
 
-static inline int replaceEdgeIfNecessary(int* out, int idx, int v10, int v21,
-	int v01, int v12, int id, int baseID,
-	int edgeID) {
-	if (!equalOrPlateau(id, baseID))
-		return 0;
-
-	if (canBeNeighbors(v10, baseID) && canBeNeighbors(v21, baseID) &&
-		canBeNeighbors(v01, baseID) && canBeNeighbors(v12, baseID))
-		out[idx] = id;
-	else
-		out[idx] = edgeID;
-
-	return 1;
-}
-
 void mapHills113(Layer* l, int* __restrict out, int areaX, int areaZ,
 	int areaWidth, int areaHeight) {
 	int pX = areaX - 1;

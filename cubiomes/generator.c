@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 void setupLayer(int scale, Layer* l, Layer* p, int s, void (*getMap)(Layer* layer, int* out, int x, int z, int w, int h)) {
 	setBaseSeed(l, s);
 	l->scale = scale;
@@ -22,12 +21,6 @@ void setupMultiLayer(int scale, Layer* l, Layer* p1, Layer* p2, int s, void (*ge
 	l->p2 = p2;
 	l->getMap = getMap;
 	l->oceanRnd = NULL;
-}
-
-
-LayerStack setupGenerator(const int mcversion) {
-	return setupGeneratorMCBE17();
-
 }
 
 LayerStack setupGeneratorMCBE17() {
@@ -122,7 +115,6 @@ void freeGenerator(LayerStack g) {
 
 	free(g.layers);
 }
-
 
 /* Recursively calculates the minimum buffer size required to generate an area
  * of the specified size from the current layer onwards.

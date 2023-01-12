@@ -7,7 +7,6 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-
 #if defined USE_SIMD && __AVX2__
 #include <emmintrin.h>
 #include <smmintrin.h>
@@ -24,7 +23,6 @@
 #define STRUCT(S) typedef struct S S; struct S
 
 #define OPT_O2 __attribute__((optimize("O2")))
-
 
 enum BiomeID {
 	none = -1,
@@ -45,7 +43,6 @@ enum BiomeType {
 enum BiomeTempCategory {
 	Oceanic, Warm, Lush, Cold, Freezing, Special
 };
-
 
 STRUCT(Biome) {
 	int id;
@@ -75,20 +72,17 @@ STRUCT(Layer) {
 	Layer* p, * p2;      // parent layers
 };
 
-
 //==============================================================================
 // Essentials
 //==============================================================================
 
 extern Biome biomes[256];
 
-
 /* initBiomes() has to be called before any of the generators can be used */
 void initBiomes();
 
 /* Applies the given world seed to the layer and all dependent layers. */
 void setWorldSeed(Layer* layer, int64_t seed);
-
 
 //==============================================================================
 // Static Helpers
@@ -105,7 +99,6 @@ static inline int biomeExists(int id) {
 static inline int getTempCategory(int id) {
 	return biomes[id].tempCat;
 }
-
 
 static inline int equalOrPlateau(int id1, int id2) {
 	if (id1 == id2) return 1;
@@ -152,7 +145,6 @@ static inline int isOceanic(int id) {
 	}
 }
 
-
 static inline int isBiomeSnowy(int id) {
 	return biomeExists(id) && biomes[id & 0xff].temp < 0.1;
 }
@@ -169,32 +161,6 @@ static inline int mcNextInt(Layer* layer, int mod) {
 	layer->chunkSeed += layer->worldSeed;
 	return ret;
 }
-
-
-
-static inline int64_t processWorldSeed(register int64_t ws, const int64_t bs) {
-	ws *= ws * 6364136223846793005LL + 1442695040888963407LL;
-	ws += bs;
-	ws *= ws * 6364136223846793005LL + 1442695040888963407LL;
-	ws += bs;
-	ws *= ws * 6364136223846793005LL + 1442695040888963407LL;
-	ws += bs;
-	ws *= ws * 6364136223846793005LL + 1442695040888963407LL;
-	return ws;
-}
-
-static inline int64_t getChunkSeed(register int64_t ss, const int64_t x, const int64_t z) {
-	ss += x;
-	ss *= ss * 6364136223846793005LL + 1442695040888963407LL;
-	ss += z;
-	ss *= ss * 6364136223846793005LL + 1442695040888963407LL;
-	ss += x;
-	ss *= ss * 6364136223846793005LL + 1442695040888963407LL;
-	ss += z;
-	return ss;
-}
-
-
 
 static inline void setChunkSeed(Layer* layer, int64_t chunkX, int64_t chunkZ) {
 	layer->chunkSeed = layer->worldSeed;
@@ -372,31 +338,9 @@ static inline __m128i select4ModeOrRandom(__m128i* cs, int ws, __m128i a1, __m12
 
 #else
 
-static inline int selectRandom2(Layer* l, int a1, int a2) {
-	int i = mcNextInt(l, 2);
-	return i == 0 ? a1 : a2;
-}
-
 static inline int selectRandom4(Layer* l, int a1, int a2, int a3, int a4) {
 	int i = mcNextInt(l, 4);
 	return i == 0 ? a1 : i == 1 ? a2 : i == 2 ? a3 : a4;
-}
-
-static inline int selectModeOrRandom(Layer* l, int a1, int a2, int a3, int a4) {
-	int rndarg = selectRandom4(l, a1, a2, a3, a4);
-
-	if (a2 == a3 && a3 == a4) return a2;
-	if (a1 == a2 && a1 == a3) return a1;
-	if (a1 == a2 && a1 == a4) return a1;
-	if (a1 == a3 && a1 == a4) return a1;
-	if (a1 == a2 && a3 != a4) return a1;
-	if (a1 == a3 && a2 != a4) return a1;
-	if (a1 == a4 && a2 != a3) return a1;
-	if (a2 == a3 && a1 != a4) return a2;
-	if (a2 == a4 && a1 != a3) return a2;
-	if (a3 == a4 && a1 != a2) return a3;
-
-	return rndarg;
 }
 
 #endif

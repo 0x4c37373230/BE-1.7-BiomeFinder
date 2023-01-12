@@ -6,7 +6,7 @@
  */
 
 #include <stdint.h>
-#include <corecrt_malloc.h>
+#include <malloc.h>
 
 #define INIT(L, R, OFF) L = 0x6c078965 * ((R) ^ (R >> 30u)) + (OFF)
 

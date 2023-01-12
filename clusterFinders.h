@@ -7,6 +7,6 @@
 #include "oceanMonument.h"
 #include "simDistance.h"
 
-void monumentCluster(LayerStack* layers, uint32_t worldSeed, Pos startPos, Pos endPos);
+__attribute__((unused)) void monumentCluster(LayerStack* layers, uint32_t worldSeed, Pos startPos, Pos endPos);
 
 #endif
